@@ -10,7 +10,8 @@
 ├── src/                          # 源代码目录
 │   └── HW2.cpp                   # 作业源代码
 ├── docs/                         # 文档目录
+    └── HW2.md                    # 作业报告的Markdown源代码
 └── README.md                     # 项目说明文档
 ```
 
-Last Update: 2025/3/24
+Last Update: 2025/3/25
