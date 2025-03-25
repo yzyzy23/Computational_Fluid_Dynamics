@@ -10,7 +10,9 @@
 ├── src/                          # 源代码目录
 │   └── HW2.cpp                   # 作业源代码
 ├── docs/                         # 文档目录
-    └── HW2.md                    # 作业报告的Markdown源代码
+│   └── HW2.md                    # 作业报告的Markdown源代码
+├── photo/                        # 作业所需的截图
+│   └── commits.png               # Git版本控制记录
 └── README.md                     # 项目说明文档
 ```
 
