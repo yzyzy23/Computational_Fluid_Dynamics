@@ -70,3 +70,4 @@ $$c=1.2$$
 核心代码生成行数占比：100%
 
 ## 附录2：本次commit截图
+![commit截图](../photo/HW3_commits.png)
