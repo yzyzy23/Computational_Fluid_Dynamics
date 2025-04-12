@@ -43,4 +43,4 @@ $$err_{2c}\approx \Delta x^2\frac{f''''(x)}{4!}$$
 核心代码生成行数占比：83.333%
 
 ## 附录2：本次commit截图
-![commit截图](..\photo\commits.png)
+![commit截图](..\photo\HW2_commits.png)

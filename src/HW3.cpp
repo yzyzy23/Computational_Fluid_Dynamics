@@ -8,9 +8,10 @@
 // c: CFL数
 // T: 计算时间
 // 输出参数：
-// 
+// 三种格式的数值解和精确解
 // =============================================================
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 
 using namespace std;
@@ -48,7 +49,12 @@ void Upwind(double **u, int t, double c, int N)
 int main() {
     int N = 0;
     double c = 0, T = 0;
-    cin >> N >> c >> T;
+    cout << "Please input grid number :" << endl;
+    cin >> N;
+    cout << "Please input CFL number :" << endl;
+    cin >> c;
+    cout << "Please input time for simulate :" << endl;
+    cin >> T;
 
     double dx = 3.0 / N;
     double dt = c * dx;
@@ -58,12 +64,11 @@ int main() {
     double **u_lax = new double*[N];
     double **u_lax_wendroff = new double*[N];
     double **u_upwind = new double*[N];
-    double **u_exact = new double*[N];
+    double *u_exact = new double[N];
     for (int i = 0; i < N; i++) {
         u_lax[i] = new double[M+1];
         u_lax_wendroff[i] = new double[M+1];
         u_upwind[i] = new double[M+1];
-        u_exact[i] = new double[M+1];
     }
 
     // 初始化
@@ -71,7 +76,6 @@ int main() {
         u_lax[i][0] = sin(2 * M_PI * i * dx);
         u_lax_wendroff[i][0] = u_lax[i][0];
         u_upwind[i][0] = u_lax[i][0];
-        u_exact[i][0] = u_lax[i][0];
     }
 
     // 计算数值解
@@ -81,29 +85,30 @@ int main() {
         Upwind(u_upwind, t, c, N);
     }
 
-    // 输出结果
-    cout << "Lax Scheme Result:" << endl;
+    // 计算精确解
     for (int i = 0; i < N; i++) {
-        cout << u_lax[i][M] << " ";
+        u_exact[i] = sin(2 * M_PI * (i * dx - T));
     }
-    cout << endl;
-    cout << "Lax-Wendroff Scheme Result:" << endl;
-    for (int i = 0; i < N; i++) {
-        cout << u_lax_wendroff[i][M] << " ";
-    }
-    cout << endl;
-    cout << "Upwind Scheme Result:" << endl;
-    for (int i = 0; i < N; i++) {
-        cout << u_upwind[i][M] << " ";
-    }
-    cout << endl;
 
+    // 输出结果
+    cout << "-------------------------------------------------------------\n";
+    cout << setw(15) << "Lax" 
+         << setw(15) << "Lax-Wendroff" 
+         << setw(15) << "Upwind" 
+         << setw(15) << "Exact" << endl;
+    cout << "-------------------------------------------------------------\n";
+    for (int i = 0; i < N; i++) {
+        cout << setw(15) << u_lax[i][M] 
+             << setw(15) << u_lax_wendroff[i][M] 
+             << setw(15) << u_upwind[i][M] 
+             << setw(15) << u_exact[i] << endl;
+    }
+    
     // 释放内存
     for (int i = 0; i < N; i++) {
         delete[] u_lax[i];
         delete[] u_lax_wendroff[i];
         delete[] u_upwind[i];
-        delete[] u_exact[i];
     }
     delete[] u_lax;
     delete[] u_lax_wendroff;
