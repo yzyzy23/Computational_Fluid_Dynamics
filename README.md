@@ -3,6 +3,8 @@
 
 ## 依赖环境
 - **C++ 11** 标准编译器
+- **Python** 标准编译器
+- **numpy matplotlib** Python库
 
 ## 项目结构（示例）
 ```markdown
@@ -17,4 +19,4 @@
 └── README.md                     # 项目说明文档
 ```
 
-Last Update: 2025/4/12
+Last Update: 2025/4/28
