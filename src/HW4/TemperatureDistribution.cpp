@@ -8,6 +8,8 @@
 // 输出参数：
 // 温度分布被存储在文件中，方便利用python进行可视化
 // 在终端输出迭代次数
+// 为了测试松弛因子和步长对收敛速率的影响，在输入时可以选择开启测试循环
+// 这将对松弛因子在0.8-2.0，步长在0.1，0.2，0.25，0.5，1.0进行测试
 // =============================================================
 #include <iostream>
 using namespace std;
@@ -23,15 +25,15 @@ void GridInit(double** f, int xsize, int ysize)
             f[i][j] = 0.0;
         }
     }
-    for (int i = 0; i <= xsize; ++i)
-    {
-        f[i][0] = 293.15;
-        f[i][ysize] = 373.15;
-    }
     for (int j = 0; j <= ysize; ++j)
     {
         f[0][j] = 293.15;
         f[xsize][j] = 293.15;
+    }
+    for (int i = 0; i <= xsize; ++i)
+    {
+        f[i][0] = 293.15;
+        f[i][ysize] = 373.15;
     }
 }
 int SOR(double** f, int xsize, int ysize, double eps, int max_iter, double omega)
@@ -61,16 +63,23 @@ int SOR(double** f, int xsize, int ysize, double eps, int max_iter, double omega
 
 int main()
 {
-    double h, omega;
-    cout << "Enter h, the grid spacing: ";
-    cin >> h;
-    cout << "Enter omega, the relaxation parameter: ";
-    cin >> omega;
-
+    double h = 1.0, omega = 1.0;
+    cout << "Start convergence rate test? (1 for yes, 0 for no): ";
+    bool test;
+    cin >> test;
+    if (!test)
+    {
+        cout << "Enter h, the grid spacing: ";
+        cin >> h;
+        cout << "Enter omega, the relaxation parameter: ";
+        cin >> omega;
+    }
+    
     // initialize T with grid size
     int N = 15, M = 12;
     int xsize = int(N / h);
     int ysize = int(M / h);
+    int max_iter = 100000;
     double** T = new double*[xsize + 1];
     for (int i = 0; i <= xsize; ++i)
     {
@@ -78,35 +87,83 @@ int main()
     }
 
     // execute SOR method
-    GridInit(T, xsize, ysize);
-    int max_iter = 100000;
-    int iter = SOR(T, xsize, ysize, EPS, max_iter, omega);
+    if (!test)
+    {
+        GridInit(T, xsize, ysize);
+        int iter = SOR(T, xsize, ysize, EPS, max_iter, omega);
 
-    // output results to file
-    FILE* fp = fopen("TemperatureDistribution.txt", "w");
-    if (fp == NULL)
-    {
-        cout << "Error opening file!" << endl;
-        return 1;
-    }
-    fprintf(fp, "%d %d\n", xsize, ysize);
-    for (int i = 0; i <= xsize; ++i)
-    {
-        for (int j = 0; j <= ysize; ++j)
+        // output results to file
+        FILE* fp = fopen("TemperatureDistribution.txt", "w");
+        if (fp == NULL)
         {
-            fprintf(fp, "%lf ", T[i][j]);
+            cout << "Error opening file: TemperatureDistribution.txt!" << endl;
+            return 1;
         }
-        fprintf(fp, "\n");
+        for (int i = 0; i <= xsize; ++i)
+        {
+            for (int j = 0; j <= ysize; ++j)
+            {
+                fprintf(fp, "%lf ", T[i][j]);
+            }
+            fprintf(fp, "\n");
+        }
+        fclose(fp);
+        cout << "SOR method completed in " << iter << " iterations." << endl;
     }
-    fclose(fp);
-    cout << "SOR method completed in " << iter << " iterations." << endl;
+    else
+    {
+        // reinitialize T for convergence rate test
+        for (int i = 0; i <= xsize; ++i)
+        {
+            delete[] T[i];
+        }
+        delete[] T;
+
+        FILE* fp = fopen("ConvergenceRate.txt", "w");
+        if (fp == NULL)
+        {
+            cout << "Error opening file: ConvergenceRate.txt!" << endl;
+            return 1;
+        }
+        double min_omega = 0.8, max_omega = 2, step = 0.01;
+        double h_arr[4] = { 0.2, 0.25, 0.5, 1.0 };
+        for (int i = 0; i < 4; ++i)
+        {
+            h = h_arr[i];
+            xsize = int(N / h);
+            ysize = int(M / h);
+            double** T = new double*[xsize + 1];
+            for (int i = 0; i <= xsize; ++i)
+            {
+                T[i] = new double[ysize + 1];
+            }
+            fprintf(fp, "%lf\n", h);
+            for (double omega = min_omega; omega <= max_omega; omega += step)
+            {
+                GridInit(T, xsize, ysize);
+                int iter = SOR(T, xsize, ysize, EPS, max_iter, omega);
+                fprintf(fp, "%lf %d\n", omega, iter);
+            }
+            for (int i = 0; i <= xsize; ++i)
+            {
+                delete[] T[i];
+            }
+            delete[] T;
+            cout << "Convergence Rate test complete for h = " << h << endl;
+        }
+        fclose(fp);
+    }
 
     // release memory for T
-    for (int i = 0; i <= xsize; ++i)
+    if (!test)
     {
-        delete[] T[i];
+        for (int i = 0; i <= xsize; ++i)
+        {
+            delete[] T[i];
+        }
+        delete[] T;
     }
-    delete[] T;
+    
 
     return 0;
 }
