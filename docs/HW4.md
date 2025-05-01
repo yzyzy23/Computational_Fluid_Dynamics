@@ -42,3 +42,4 @@ $$T^{k+1}(i,j)=(1-\omega)T^k(i,j)+\frac{\omega}{4}[T^{k+1}(i-1,j)+T^{k+1}(i,j-1)
 核心代码生成行数占比：0%
 
 ## 附录2：本次commit截图
+![commit](../photo/HW4/commit.png)
