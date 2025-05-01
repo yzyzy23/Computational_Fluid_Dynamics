@@ -126,7 +126,7 @@ int main()
             return 1;
         }
         double min_omega = 0.8, max_omega = 2, step = 0.01;
-        double h_arr[4] = { 0.2, 0.25, 0.5, 1.0 };
+        double h_arr[4] = { 0.2, 0.25, 0.5, 1.0};
         for (int i = 0; i < 4; ++i)
         {
             h = h_arr[i];

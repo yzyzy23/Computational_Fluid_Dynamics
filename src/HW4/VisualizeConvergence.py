@@ -29,8 +29,6 @@ def plot_convergence_rate(filename):
     
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
-    cbar = plt.colorbar(sm, ax=plt.gca())
-    cbar.set_label('Grid Space h (cm)', fontsize=12)
     plt.xlabel('Relaxation Factor ω', fontsize=12)
     plt.ylabel('Number of Iterations', fontsize=12)
     plt.title('Convergence Rate of Successive Over-Relaxation Method', fontsize=14)
