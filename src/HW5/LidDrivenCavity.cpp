@@ -6,17 +6,15 @@
 #include <cmath>
 using namespace std;
 
-const double EPS = 1e-5;
+const double EPS = 1e-6;
 const int MAX_ITER = 10000;
-const int EARLY_EXIT = 10;
 
 void InitVelocity(double** u, double** v, int xsize, int ysize)
 {
     for (int i = 0; i < xsize; ++i)
     {
         u[i][0] = 0.0;
-        //u[i][ysize - 1] = sin(M_PI * double(i) / xsize) * sin(M_PI * double(i) / xsize);
-        u[i][ysize - 1] = 1.0;
+        u[i][ysize - 1] = sin(M_PI * double(i) / xsize) * sin(M_PI * double(i) / xsize);
         v[i][0] = 0.0;
         v[i][ysize - 1] = 0.0;
     }
@@ -82,7 +80,7 @@ void UpdateVorticity(double** omega, double** psi, double h, double nu, double d
     }
     delete[] temp;
 }
-int SOR(double** f, double** omega, int xsize, int ysize, double h, double relax_factor)
+bool SOR(double** f, double** omega, int xsize, int ysize, double h, double relax_factor)
 {
     double max_diff = 0.0;
     int iter = 0;
@@ -104,7 +102,12 @@ int SOR(double** f, double** omega, int xsize, int ysize, double h, double relax
         }
         ++iter;
     } while (iter < MAX_ITER && max_diff > EPS);
-    return iter;
+
+    if (iter >= MAX_ITER || iter == 1)
+    {
+        return false;
+    }
+    return true;
 }
 
 int main()
@@ -115,9 +118,9 @@ int main()
     double nu = 0.001;
     double relax_factor = 1.5;
     double dt = 0.01;
+    bool is_converge = false;
     int xsize = static_cast<int>(1.0 / h);
     int ysize = static_cast<int>(1.0 / h);
-    int iter = 0;
     double** u = new double*[xsize];
     double** v = new double*[xsize];
     double** omega = new double*[xsize];
@@ -139,29 +142,43 @@ int main()
 
     InitVelocity(u, v, xsize, ysize);
     InitVorticity(u, v, omega, xsize, ysize, h);
-    iter = SOR(psi, omega, xsize, ysize, h, relax_factor);
+    is_converge = SOR(psi, omega, xsize, ysize, h, relax_factor);
 
-    while (iter >= EARLY_EXIT)
+    while (is_converge)
     {
         ApplyBoundCondition(psi, omega, u, v, xsize, ysize, h);
         UpdateVorticity(omega, psi, h, nu, dt, xsize, ysize);
-        iter = SOR(psi, omega, xsize, ysize, h, relax_factor);
+        is_converge = SOR(psi, omega, xsize, ysize, h, relax_factor);
     }
 
-    FILE* fp = fopen("LidDrivenCavity.txt", "w");
-    if (fp == NULL)
+    FILE* fp1 = fopen("StreamFunction.txt", "w");
+    if (fp1 == NULL)
     {
-        cout << "Error opening file!" << endl;
+        cout << "Error opening file: StreamFunction.txt!" << endl;
         return -1;
     }
     for (int i = 0; i < xsize; ++i)
     {
         for (int j = 0; j < ysize; ++j)
         {
-            fprintf(fp, "%d %d %lf\n", i, j, psi[i][j]);
+            fprintf(fp1, "%d %d %lf\n", i, j, psi[i][j]);
         }
     }
-    fclose(fp);
+    fclose(fp1);
+    FILE* fp2 = fopen("Vorticity.txt", "w");
+    if (fp2 == NULL)
+    {
+        cout << "Error opening file: Vorticity.txt!" << endl;
+        return -1;
+    }
+    for (int i = 0; i < xsize; ++i)
+    {
+        for (int j = 0; j < ysize; ++j)
+        {
+            fprintf(fp2, "%d %d %lf\n", i, j, omega[i][j]);
+        }
+    }
+    fclose(fp2);
 
     for (int i = 0; i < xsize; ++i)
     {
