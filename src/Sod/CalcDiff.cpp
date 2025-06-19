@@ -47,6 +47,41 @@ void CalcDiffTVD(const vector<Conserved>& U_left, const vector<Conserved>& U_rig
         diff[i].E = (new_u_left[i].E - new_u_left[i - 1].E + new_u_right[i].E - new_u_right[i - 1].E) / dx;
     }
 }
+void CalcDiffGVC(const vector<Conserved>& U_left, const vector<Conserved>& U_right, vector<Conserved>& new_u_left, vector<Conserved>& new_u_right, vector<Conserved>& diff, double dx)
+{
+    // Use group velocity control to calculate differences
+    int n = U_left.size();
+    vector<Conserved> diff_left(n), diff_right(n);
+
+    for (int i = 1; i < n - 2; ++i)
+    {
+        if (i > (n / 2))
+        {
+            new_u_left[i].rho = 0.5 * (U_left[i].rho + U_left[i + 1].rho);
+            new_u_left[i].rho_u = 0.5 * (U_left[i].rho_u + U_left[i + 1].rho_u);
+            new_u_left[i].E = 0.5 * (U_left[i].E + U_left[i + 1].E);
+            new_u_right[i].rho = 0.5 * (U_right[i].rho + U_right[i + 1].rho);
+            new_u_right[i].rho_u = 0.5 * (U_right[i].rho_u + U_right[i + 1].rho_u);
+            new_u_right[i].E = 0.5 * (U_right[i].E + U_right[i + 1].E);
+        }
+        else
+        {
+            new_u_left[i].rho = 0.5 * (3.0 * U_left[i].rho - U_left[i - 1].rho);
+            new_u_left[i].rho_u = 0.5 * (3.0 * U_left[i].rho_u - U_left[i - 1].rho_u);
+            new_u_left[i].E = 0.5 * (3.0 * U_left[i].E - U_left[i - 1].E);
+            new_u_right[i].rho = 0.5 * (3.0 * U_right[i].rho - U_right[i - 1].rho);
+            new_u_right[i].rho_u = 0.5 * (3.0 * U_right[i].rho_u - U_right[i - 1].rho_u);
+            new_u_right[i].E = 0.5 * (3.0 * U_right[i].E - U_right[i - 1].E);
+        }
+        cout << "new_u_left[" << i << "]: " << new_u_left[i].rho << ", " << new_u_left[i].rho_u << ", " << new_u_left[i].E << endl;
+    }
+    for (int i = 2; i < n - 2; ++i)
+    {
+        diff[i].rho = (new_u_left[i].rho + new_u_right[i].rho) / dx;
+        diff[i].rho_u = (new_u_left[i].rho_u + new_u_right[i].rho_u) / dx;
+        diff[i].E = (new_u_left[i].E + new_u_right[i].E) / dx;
+    }
+}
 void CalcDiffWENO(const vector<Conserved>& U_left, const vector<Conserved>& U_right, vector<Conserved>& new_u_left, vector<Conserved>& new_u_right, vector<Conserved>& diff, double dx)
 {
     int n = U_left.size();
@@ -75,17 +110,17 @@ void CalcDiffWENO(const vector<Conserved>& U_left, const vector<Conserved>& U_ri
         vector<double> omega_rho_u = {0.0, 0.0, 0.0};
         vector<double> omega_E = {0.0, 0.0, 0.0};
 
-        for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
         {
-            alpha_rho[i] = C[i] / pow(local_eps + IS_rho[i], 2);
-            alpha_rho_u[i] = C[i] / pow(local_eps + IS_rho_u[i], 2);
-            alpha_E[i] = C[i] / pow(local_eps + IS_E[i], 2);
+            alpha_rho[j] = C[j] / (pow(local_eps + IS_rho[j], 2) + eps);
+            alpha_rho_u[j] = C[j] / (pow(local_eps + IS_rho_u[j], 2) + eps);
+            alpha_E[j] = C[j] / (pow(local_eps + IS_E[j], 2) + eps);
         }
-        for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
         {
-            omega_rho[i] = alpha_rho[i] / (alpha_rho[0] + alpha_rho[1] + alpha_rho[2]);
-            omega_rho_u[i] = alpha_rho_u[i] / (alpha_rho_u[0] + alpha_rho_u[1] + alpha_rho_u[2]);
-            omega_E[i] = alpha_E[i] / (alpha_E[0] + alpha_E[1] + alpha_E[2]);
+            omega_rho[j] = alpha_rho[j] / (alpha_rho[0] + alpha_rho[1] + alpha_rho[2]);
+            omega_rho_u[j] = alpha_rho_u[j] / (alpha_rho_u[0] + alpha_rho_u[1] + alpha_rho_u[2]);
+            omega_E[j] = alpha_E[j] / (alpha_E[0] + alpha_E[1] + alpha_E[2]);
         }
 
         vector<Conserved> f(3);
@@ -126,17 +161,17 @@ void CalcDiffWENO(const vector<Conserved>& U_left, const vector<Conserved>& U_ri
         omega_rho_u = {0.0, 0.0, 0.0};
         omega_E = {0.0, 0.0, 0.0};
 
-        for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
         {
-            alpha_rho[i] = C[i] / pow(local_eps + IS_rho[i], 2);
-            alpha_rho_u[i] = C[i] / pow(local_eps + IS_rho_u[i], 2);
-            alpha_E[i] = C[i] / pow(local_eps + IS_E[i], 2);
+            alpha_rho[j] = C[j] / (pow(local_eps + IS_rho[j], 2) + eps);
+            alpha_rho_u[j] = C[j] / (pow(local_eps + IS_rho_u[j], 2) + eps);
+            alpha_E[j] = C[j] / (pow(local_eps + IS_E[j], 2) + eps);
         }
-        for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
         {
-            omega_rho[i] = alpha_rho[i] / (alpha_rho[0] + alpha_rho[1] + alpha_rho[2]);
-            omega_rho_u[i] = alpha_rho_u[i] / (alpha_rho_u[0] + alpha_rho_u[1] + alpha_rho_u[2]);
-            omega_E[i] = alpha_E[i] / (alpha_E[0] + alpha_E[1] + alpha_E[2]);
+            omega_rho[j] = alpha_rho[j] / (alpha_rho[0] + alpha_rho[1] + alpha_rho[2]);
+            omega_rho_u[j] = alpha_rho_u[j] / (alpha_rho_u[0] + alpha_rho_u[1] + alpha_rho_u[2]);
+            omega_E[j] = alpha_E[j] / (alpha_E[0] + alpha_E[1] + alpha_E[2]);
         }
         f[0].rho = (1.0 / 3) * U_right[i + 2].rho - (7.0 / 6) * U_right[i + 1].rho + (11.0 / 6) * U_right[i].rho;
         f[0].rho_u = (1.0 / 3) * U_right[i + 2].rho_u - (7.0 / 6) * U_right[i + 1].rho_u + (11.0 / 6) * U_right[i].rho_u;
@@ -173,6 +208,11 @@ void CalcDiff(const vector<Conserved>& U_left, const vector<Conserved>& U_right,
     {
         // Use WENO method
         CalcDiffWENO(U_left, U_right, new_u_left, new_u_right, diff, dx);
+    }
+    else if (diff_calc_type == 2)
+    {
+        // Use GVC method
+        CalcDiffGVC(U_left, U_right, new_u_left, new_u_right, diff, dx);
     }
     else
     {
