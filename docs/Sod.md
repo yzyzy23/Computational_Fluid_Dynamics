@@ -418,6 +418,7 @@ $$U^{n+1}=\frac{1}{3}U^n+\frac{2}{3}(U_2+\Delta tQ(U_2))$$
         }
     }
 主要函数仅举以上几例，具体实现方法在代码文件中有完整体现。
+直接打开6个文件并运行即可得到存储在SodResult.txt中的数据，再运行SodVisualize.py即可得到解的图像。
 # 3.结果讨论和解释
 最终画图如下：
 FDS-TVD:
@@ -463,3 +464,5 @@ FVS方法引入了固有耗散，可以抑制非物理振荡，而这里使用�
 |GitHub Copilot|ExactSolver.py中的部分代码|求Sod问题的精确解，并解答为什么计算时会出现值为NaN|
 
 核心代码生成行数占比：0%
+## 附录2：本次commit截图
+![](../photo/Sod/commit.png)
